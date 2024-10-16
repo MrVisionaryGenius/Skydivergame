@@ -108,13 +108,11 @@ export default function SkyDiverDash() {
   // Add type annotation for 'this' (Phaser.Scene)
   function createObstacle(this: Phaser.Scene) {
     const x = Phaser.Math.Between(0, 800);
-    const obstacle = obstacles.create(
-      x,
-      0,
-      "obstacle"
-    ) as Phaser.Physics.Arcade.Sprite;
-    obstacle.setBounce(1);
-    obstacle.setCollideWorldBounds(true);
+    const obstacle = obstacles
+      .create(x, 0, "obstacle")
+      .setBounce(1)
+      .setCollideWorldBounds(true)
+      .setVelocity(Phaser.Math.Between(-200, 200), 100);
 
     const xVelocity = Phaser.Math.Between(-200, 200);
     const yVelocity = 100; // or any other value as needed
