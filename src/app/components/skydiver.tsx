@@ -1,7 +1,6 @@
 "use client";
-
 import React, { useEffect, useRef } from "react";
-import Phaser from "phaser";
+import * as Phaser from "phaser"; // Use named import for Phaser
 
 export default function SkyDiverDash() {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -37,60 +36,42 @@ export default function SkyDiverDash() {
     }
   }, []);
 
-  // Define the types of Phaser elements
   let diver: Phaser.Physics.Arcade.Sprite;
   let obstacles: Phaser.Physics.Arcade.Group;
   let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   let score = 0;
   let scoreText: Phaser.GameObjects.Text;
 
-  // Preload assets
   function preload(this: Phaser.Scene) {
     this.load.image("sky", "/sky.png");
     this.load.image("diver", "/diver.png");
     this.load.image("obstacle", "/obstacle.png");
   }
 
-  // Create game objects and logic
   function create(this: Phaser.Scene) {
-    // Set the background and scale it to fit the screen size
-    const sky = this.add.image(0, 0, "sky").setOrigin(0, 0);
-    sky.displayWidth = this.sys.game.config.width as number;
-    sky.displayHeight = this.sys.game.config.height as number;
-
-    // Add the diver
+    this.add.image(400, 300, "sky");
     diver = this.physics.add.sprite(100, 300, "diver");
     diver.setBounce(0.2);
     diver.setCollideWorldBounds(true);
 
-    // Create obstacles group
     obstacles = this.physics.add.group();
     cursors = this.input.keyboard.createCursorKeys();
 
-    // Display score
     scoreText = this.add.text(16, 16, "Score: 0", {
       fontSize: "32px",
       color: "#000",
     });
 
-    // Add collision between diver and obstacles
     this.physics.add.collider(diver, obstacles, hitObstacle, null, this);
 
-    // Create obstacles every 1.5 seconds
     this.time.addEvent({
       delay: 1500,
       callback: createObstacle,
       callbackScope: this,
       loop: true,
     });
-
-    // Listen for spacebar to restart after game over
-    this.input.keyboard.once("keydown-SPACE", () => {
-      this.scene.restart();
-    });
   }
 
-  // Update game logic
   function update(this: Phaser.Scene, time: number, delta: number) {
     if (cursors.left?.isDown) {
       diver.setVelocityX(-160);
@@ -104,12 +85,10 @@ export default function SkyDiverDash() {
       diver.setVelocityY(-200);
     }
 
-    // Update the score based on time elapsed
     score += delta / 1000;
     scoreText.setText("Score: " + Math.floor(score));
   }
 
-  // Create new obstacles
   function createObstacle(this: Phaser.Scene) {
     const x = Phaser.Math.Between(0, 800);
     const obstacle = obstacles.create(
@@ -119,28 +98,22 @@ export default function SkyDiverDash() {
     ) as Phaser.Physics.Arcade.Sprite;
     obstacle.setBounce(1);
     obstacle.setCollideWorldBounds(true);
-    obstacle.setVelocity(Phaser.Math.Between(-200, 200), 100);
+
+    const xVelocity = Phaser.Math.Between(-200, 200);
+    const yVelocity = 100; // or any other value as needed
+    obstacle.setVelocity(xVelocity, yVelocity);
   }
 
-  // Handle collision between diver and obstacles
   function hitObstacle(this: Phaser.Scene) {
-    if (!diver) return;
     this.physics.pause();
     diver.setTint(0xff0000);
-
     this.add
-      .text(400, 300, "Game Over - Press SPACE to Restart", {
-        fontSize: "32px",
-        color: "#000",
-      })
+      .text(400, 300, "Game Over", { fontSize: "64px", color: "#000" })
       .setOrigin(0.5);
 
-    // Add game restart on pointer click or key press
-    this.input.once("pointerdown", () => {
-      this.scene.restart();
-    });
-    this.input.keyboard.once("keydown-SPACE", () => {
-      this.scene.restart();
+    // Optionally refresh the game after a few seconds
+    this.time.delayedCall(2000, () => {
+      window.location.reload();
     });
   }
 
