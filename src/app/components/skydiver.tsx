@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef } from "react";
-import * as Phaser from "phaser"; // Use named import for Phaser
+import * as Phaser from "phaser";
 
 export default function SkyDiverDash() {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -15,7 +15,7 @@ export default function SkyDiverDash() {
         physics: {
           default: "arcade",
           arcade: {
-            gravity: { y: 100 },
+            gravity: { x: 0, y: 100 }, // Fixed: added x property
             debug: false,
           },
         },
