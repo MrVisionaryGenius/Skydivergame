@@ -42,27 +42,41 @@ export default function SkyDiverDash() {
   let score = 0;
   let scoreText: Phaser.GameObjects.Text;
 
+  // Add type annotation for 'this' (Phaser.Scene)
   function preload(this: Phaser.Scene) {
     this.load.image("sky", "/sky.png");
     this.load.image("diver", "/diver.png");
     this.load.image("obstacle", "/obstacle.png");
   }
 
+  // Add type annotation for 'this' (Phaser.Scene)
   function create(this: Phaser.Scene) {
-    this.add.image(400, 300, "sky");
+    // Make the background cover the entire screen
+    const sky = this.add.image(0, 0, "sky");
+    sky.setOrigin(0, 0);
+    sky.setDisplaySize(this.sys.canvas.width, this.sys.canvas.height);
+
     diver = this.physics.add.sprite(100, 300, "diver");
     diver.setBounce(0.2);
     diver.setCollideWorldBounds(true);
 
     obstacles = this.physics.add.group();
-    cursors = this.input.keyboard.createCursorKeys();
+    // cursors = this.input.keyboard.createCursorKeys();
+    cursors = this.input.keyboard!.createCursorKeys();
 
     scoreText = this.add.text(16, 16, "Score: 0", {
       fontSize: "32px",
       color: "#000",
     });
 
-    this.physics.add.collider(diver, obstacles, hitObstacle, null, this);
+    // Correct types for the collider callback
+    this.physics.add.collider(
+      diver,
+      obstacles,
+      hitObstacle as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+      undefined,
+      this
+    );
 
     this.time.addEvent({
       delay: 1500,
@@ -72,6 +86,7 @@ export default function SkyDiverDash() {
     });
   }
 
+  // Add type annotation for 'this' (Phaser.Scene)
   function update(this: Phaser.Scene, time: number, delta: number) {
     if (cursors.left?.isDown) {
       diver.setVelocityX(-160);
@@ -81,7 +96,8 @@ export default function SkyDiverDash() {
       diver.setVelocityX(0);
     }
 
-    if (cursors.up?.isDown && diver.body.touching.down) {
+    // Check if diver.body exists before accessing
+    if (diver.body && cursors.up?.isDown && diver.body.touching.down) {
       diver.setVelocityY(-200);
     }
 
@@ -89,6 +105,7 @@ export default function SkyDiverDash() {
     scoreText.setText("Score: " + Math.floor(score));
   }
 
+  // Add type annotation for 'this' (Phaser.Scene)
   function createObstacle(this: Phaser.Scene) {
     const x = Phaser.Math.Between(0, 800);
     const obstacle = obstacles.create(
@@ -104,15 +121,20 @@ export default function SkyDiverDash() {
     obstacle.setVelocity(xVelocity, yVelocity);
   }
 
-  function hitObstacle(this: Phaser.Scene) {
-    this.physics.pause();
+  // Fix type mismatch by specifying correct types
+  function hitObstacle(
+    diver: Phaser.Physics.Arcade.Sprite, // diver must be an Arcade Sprite
+    obstacle: Phaser.Physics.Arcade.Sprite // obstacle must also be an Arcade Sprite
+  ) {
     diver.setTint(0xff0000);
-    this.add
+    diver.scene.physics.pause();
+
+    diver.scene.add
       .text(400, 300, "Game Over", { fontSize: "64px", color: "#000" })
       .setOrigin(0.5);
 
     // Optionally refresh the game after a few seconds
-    this.time.delayedCall(2000, () => {
+    diver.scene.time.delayedCall(2000, () => {
       window.location.reload();
     });
   }
